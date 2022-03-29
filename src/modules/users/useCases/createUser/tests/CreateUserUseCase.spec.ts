@@ -6,7 +6,7 @@ import { CreateUserUseCase } from "../CreateUserUseCase"
 let inMemoryUsersRepository: InMemoryUsersRepository
 let createUserUseCase: CreateUserUseCase
 
-describe("test", () => {
+describe("CreateUserUseCase", () => {
 
   beforeEach(() => {
     inMemoryUsersRepository = new InMemoryUsersRepository()
