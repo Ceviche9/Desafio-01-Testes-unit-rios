@@ -1,4 +1,5 @@
 import { Statement } from "../../entities/Statement";
+import { IBankTransferDTO } from "../../useCases/bankTransfer/IBankTransferDTO";
 import { ICreateStatementDTO } from "../../useCases/createStatement/ICreateStatementDTO";
 import { IGetBalanceDTO } from "../../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../../useCases/getStatementOperation/IGetStatementOperationDTO";
@@ -32,7 +33,7 @@ export class InMemoryStatementsRepository implements IStatementsRepository {
     const statement = this.statements.filter(operation => operation.user_id === user_id);
 
     const balance = statement.reduce((acc, operation) => {
-      if (operation.type === 'deposit') {
+      if (operation.type === 'deposit' || operation.type === 'transfer') {
         return acc + operation.amount;
       } else {
         return acc - operation.amount;
@@ -48,4 +49,31 @@ export class InMemoryStatementsRepository implements IStatementsRepository {
 
     return { balance }
   }
+
+  async bankTransfer({sender_id, receiver_id, amount, description}: IBankTransferDTO): Promise<Statement[]> {
+    const senderStatement = new Statement();
+    const sender_operation_type = "transfer"
+
+    Object.assign(senderStatement, {
+      user_id: sender_id,
+      description,
+      type: sender_operation_type,
+      amount: - amount
+    });
+
+    this.statements.push(senderStatement)
+
+    const receiverStatement = new Statement();
+
+    Object.assign(receiverStatement, {
+      user_id: receiver_id,
+      description,
+      type: sender_operation_type,
+      amount: amount
+    });
+
+    this.statements.push(receiverStatement)
+
+    return [senderStatement, receiverStatement]
+  };
 }

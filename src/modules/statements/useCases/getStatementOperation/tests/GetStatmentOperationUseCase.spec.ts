@@ -7,8 +7,6 @@ let getStatementOperationUseCase: GetStatementOperationUseCase
 let inMemoryStatementsRepository: InMemoryStatementsRepository
 let inMemoryUsersRepository: InMemoryUsersRepository
 
-
-
 describe("GetStatementOperationUseCase", () => {
 
   beforeEach(() => {
@@ -43,7 +41,6 @@ describe("GetStatementOperationUseCase", () => {
       user_id: user.id,
       statement_id: statement.id
     })
-
 
     expect(statementOperation.amount).toEqual(1000)
   })

@@ -1,6 +1,7 @@
 import { getRepository, Repository } from "typeorm";
 
 import { Statement } from "../entities/Statement";
+import { IBankTransferDTO } from "../useCases/bankTransfer/IBankTransferDTO";
 import { ICreateStatementDTO } from "../useCases/createStatement/ICreateStatementDTO";
 import { IGetBalanceDTO } from "../useCases/getBalance/IGetBalanceDTO";
 import { IGetStatementOperationDTO } from "../useCases/getStatementOperation/IGetStatementOperationDTO";
@@ -45,7 +46,7 @@ export class StatementsRepository implements IStatementsRepository {
     });
 
     const balance = statement.reduce((acc, operation) => {
-      if (operation.type === 'deposit') {
+      if (operation.type === 'deposit' || operation.type === 'transfer') {
         return acc + operation.amount;
       } else {
         return acc - operation.amount;
@@ -61,4 +62,32 @@ export class StatementsRepository implements IStatementsRepository {
 
     return { balance }
   }
+
+  async bankTransfer({sender_id, receiver_id, amount, description}: IBankTransferDTO): Promise<Statement[]> {
+    enum OperationType {
+      DEPOSIT = 'deposit',
+      WITHDRAW = 'withdraw',
+      TRANSFER = 'transfer'
+    }
+
+    const senderStatement = this.repository.create({
+      user_id: sender_id,
+      description,
+      type: OperationType.TRANSFER,
+      amount: - amount
+    })
+
+    const receiverStatement = this.repository.create({
+      user_id: receiver_id,
+      description,
+      type: OperationType.TRANSFER,
+      amount: amount
+    })
+
+    await this.repository.save(senderStatement)
+    await this.repository.save(receiverStatement)
+
+
+    return [senderStatement, receiverStatement]
+  };
 }
